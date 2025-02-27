@@ -456,7 +456,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   rooms: []
-  maxSplits: 2
+  maxSplits: 10
 --- !u!4 &1622269099
 Transform:
   m_ObjectHideFlags: 0

@@ -7,14 +7,19 @@ public class NewMonoBehaviourScript : MonoBehaviour
     public List<RectInt> rooms = new List<RectInt>(); // Store all rooms here
     public int maxSplits = 2; // Number of times to divide the dungeon
 
-    float duration = 0;
+    float duration = 100;
     bool depthTest = false;
     float height = 0.01f;
 
     private void Start()
     {
         RectInt initialRoom = new RectInt(0, 0, 100, 50);
-        GenerateSubRooms(initialRoom, maxSplits);
+        rooms.Add(initialRoom);
+
+        for (int i = 0; i < maxSplits; i++)
+        {
+            SplitOneRoom();
+        }
     }
 
     private void Update()
@@ -26,38 +31,60 @@ public class NewMonoBehaviourScript : MonoBehaviour
         }
     }
 
-    void GenerateSubRooms(RectInt currentRoom, int splitsRemaining)
+    void SplitOneRoom()
     {
-        if (splitsRemaining <= 0)
-        {
-            rooms.Add(currentRoom);
-            return;
-        }
+        if (rooms.Count == 0) return; // Prevent errors
+
+        // Pick a random room from the list to split
+        int roomIndex = Random.Range(0, rooms.Count);
+        RectInt roomToSplit = rooms[roomIndex];
 
         bool splitVertically = Random.value > 0.5f;
+        RectInt firstHalf, secondHalf;
+
         if (splitVertically)
         {
-            //int splitX = Random.Range(currentRoom.xMin + 5, currentRoom.xMax - 5);
-            int halfWidth = currentRoom.width / 2; // Get half of the current width
-            int splitX = currentRoom.xMin + halfWidth;
+            int halfWidth = roomToSplit.width / 2;
+            int splitX = roomToSplit.xMin + halfWidth;
 
-            RectInt leftRoom = new RectInt(currentRoom.xMin, currentRoom.yMin, splitX - currentRoom.xMin, currentRoom.height);
-            RectInt rightRoom = new RectInt(splitX, currentRoom.yMin, currentRoom.xMax - splitX, currentRoom.height);
-
-            //GenerateSubRooms(leftRoom, splitsRemaining - 1);
-            //GenerateSubRooms(rightRoom, splitsRemaining - 1);
+            firstHalf = new RectInt(
+                roomToSplit.xMin, 
+                roomToSplit.yMin, 
+                halfWidth, 
+                roomToSplit.height 
+                );
+            secondHalf = new RectInt(
+                splitX, 
+                roomToSplit.yMin, 
+                roomToSplit.width - halfWidth, 
+                roomToSplit.height
+                );
         }
         else
         {
-            //int splitY = Random.Range(currentRoom.yMin + 5, currentRoom.yMax - 5);
-            int halfHeight = currentRoom.height / 2; // Get half of the current height
-            int splitY = currentRoom.yMin + halfHeight;
+            int halfHeight = roomToSplit.height / 2;
+            int splitY = roomToSplit.yMin + halfHeight;
 
-            RectInt bottomRoom = new RectInt(currentRoom.xMin, currentRoom.yMin, currentRoom.width, splitY - currentRoom.yMin);
-            RectInt topRoom = new RectInt(currentRoom.xMin, splitY, currentRoom.width, currentRoom.yMax - splitY);
+            firstHalf = new RectInt(
+                roomToSplit.xMin,
+                roomToSplit.yMin, 
+                roomToSplit.width, 
+                halfHeight
+                );
 
-            //GenerateSubRooms(bottomRoom, splitsRemaining - 1);
-            //GenerateSubRooms(topRoom, splitsRemaining - 1);
+            secondHalf = new RectInt(
+                roomToSplit.xMin, 
+                splitY, 
+                roomToSplit.width, 
+                roomToSplit.height - halfHeight
+                );
         }
+
+        // Replace the original room with the two new ones
+        rooms.RemoveAt(roomIndex);
+        rooms.Add(firstHalf);
+        rooms.Add(secondHalf);
     }
 }
+            //int splitX = Random.Range(currentRoom.xMin + 5, currentRoom.xMax - 5);
+            //int splitY = Random.Range(currentRoom.yMin + 5, currentRoom.yMax - 5);
