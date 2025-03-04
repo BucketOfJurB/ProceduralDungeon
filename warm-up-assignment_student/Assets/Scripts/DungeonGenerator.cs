@@ -89,28 +89,27 @@ public class DungeonGenerator : MonoBehaviour
         yield return new WaitForSeconds(1f);
         foreach (RectInt room in rooms)
         {
-            // Create floor tiles for each coordinate inside the room
-            for (int x = room.xMin; x < room.xMax; x++)
-            {
-                for (int y = room.yMin; y < room.yMax; y++)
-                {
-                    Vector3 position = new Vector3(x, 0, y); // Use (x, 0, y) to place on floor level
-                    Instantiate(floorPrefab, position, Quaternion.identity, dungeonParent);
+            // Calculate the center of the room for positioning
+            Vector3 position = new Vector3(room.x + room.width / 2f, 0, room.y + room.height / 2f);
 
-                    yield return null;
-                }
-            }
+            // Create a new floor
+            GameObject floor = Instantiate(floorPrefab, position, Quaternion.identity, dungeonParent);
 
-            StartCoroutine(GenerateWallsAndDoors());
+            yield return new WaitForSeconds(0.5f);
 
+            // Scale the floor to fit the room size
+            floor.transform.localScale = new Vector3(room.width, 1, room.height);
+
+            yield return new WaitForSeconds(0.5f);
         }
-
-        IEnumerator GenerateWallsAndDoors()
-        {
-            yield return null;
-        }
-
+        Debug.Log("I'm done generating floors hehehaha");
+        StartCoroutine(GenerateWallsAndDoors());
     }
+    IEnumerator GenerateWallsAndDoors()
+    {
+        yield return null;
+    }
+
 }
 //int splitX = Random.Range(currentRoom.xMin + 10, currentRoom.xMax - 10);
 //int splitY = Random.Range(currentRoom.yMin + 10, currentRoom.yMax - 10);
