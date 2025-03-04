@@ -1,6 +1,7 @@
 using UnityEngine;
 using System.Collections.Generic;
 using Unity.VisualScripting;
+using System.Collections;
 
 public class DungeonGenerator : MonoBehaviour
 {
@@ -8,6 +9,9 @@ public class DungeonGenerator : MonoBehaviour
     public int maxSplits = 3; // Number of splits that should happen
     public int overlapSize = 2; // Total overlap (1 on each side)
     public int minRoomSize = 10; // Min width or height for a room to be able to split
+
+    public GameObject floorPrefab;
+    public Transform dungeonParent;
 
     float duration = 0;
     bool depthTest = false;
@@ -18,10 +22,13 @@ public class DungeonGenerator : MonoBehaviour
         RectInt initialRoom = new RectInt(0, 0, 100, 100);
         rooms.Add(initialRoom);
 
+        
         for (int i = 0; i < maxSplits; i++)
         {
             SplitOneRoom(initialRoom); // Ensure boundary remains unchanged
         }
+        StartCoroutine("DungeonGeneration");
+        
     }
 
     private void Update()
@@ -75,6 +82,35 @@ public class DungeonGenerator : MonoBehaviour
         rooms.Add(firstHalf);
         rooms.Add(secondHalf);
     }
+
+    IEnumerator DungeonGeneration()
+    {
+        Debug.Log("Starting generation...");
+        yield return new WaitForSeconds(1f);
+        foreach (RectInt room in rooms)
+        {
+            // Create floor tiles for each coordinate inside the room
+            for (int x = room.xMin; x < room.xMax; x++)
+            {
+                for (int y = room.yMin; y < room.yMax; y++)
+                {
+                    Vector3 position = new Vector3(x, 0, y); // Use (x, 0, y) to place on floor level
+                    Instantiate(floorPrefab, position, Quaternion.identity, dungeonParent);
+
+                    yield return null;
+                }
+            }
+
+            StartCoroutine(GenerateWallsAndDoors());
+
+        }
+
+        IEnumerator GenerateWallsAndDoors()
+        {
+            yield return null;
+        }
+
+    }
 }
-//int splitX = Random.Range(currentRoom.xMin + 5, currentRoom.xMax - 5);
-//int splitY = Random.Range(currentRoom.yMin + 5, currentRoom.yMax - 5);
+//int splitX = Random.Range(currentRoom.xMin + 10, currentRoom.xMax - 10);
+//int splitY = Random.Range(currentRoom.yMin + 10, currentRoom.yMax - 10);
