@@ -36,8 +36,8 @@ public class InventorySystem : MonoBehaviour
             {
                 // Update stack count by modifying the last entry
                 string lastEntry = inventory[itemName][0];
-                int currentCount = int.Parse(lastEntry.Split('x')[1]); // Extract count
-                inventory[itemName][0] = itemName + " x" + (currentCount + 1); // Update count
+                int currentCount = int.Parse(lastEntry.Split('x')[1]);
+                inventory[itemName][0] = itemName + " x" + (currentCount + 1);
             }
         }
     }
@@ -67,7 +67,7 @@ public class InventorySystem : MonoBehaviour
 
             if (inventory[itemName].Count == 0)
             {
-                inventory.Remove(itemName); // Remove item completely if empty
+                inventory.Remove(itemName);
             }
         }
     }
