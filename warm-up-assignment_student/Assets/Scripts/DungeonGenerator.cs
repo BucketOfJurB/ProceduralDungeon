@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Unity.VisualScripting;
 using System.Collections;
 using NaughtyAttributes;
+using UnityEngine.Analytics;
 
 public class DungeonGenerator : MonoBehaviour
 {
@@ -10,7 +11,7 @@ public class DungeonGenerator : MonoBehaviour
     public List<RectInt> walls = new List<RectInt>();
     public int maxSplits = 3; // Number of splits that should happen
     public int overlapSize = 2; // Total overlap (1 on each side)
-    public int minRoomSize = 10; // Min width or height for a room to be able to split
+    public int minRoomSize = 20; // Min width or height for a room to be able to split
 
     public GameObject floorPrefab;
     public Transform dungeonParent;
@@ -29,9 +30,10 @@ public class DungeonGenerator : MonoBehaviour
         {
             SplitOneRoom(initialRoom); // Ensure boundary remains unchanged
         }
-        CalculateWalls();
+        StartCoroutine(CalculateWalls());
+
+
         StartCoroutine("DungeonGeneration");
-        
     }
 
     private void Update()
@@ -39,6 +41,10 @@ public class DungeonGenerator : MonoBehaviour
         foreach (var room in rooms)
         {
             AlgorithmsUtils.DebugRectInt(room, Color.green, duration, depthTest, height);
+        }
+        foreach (var wall in walls)
+        {
+            AlgorithmsUtils.DebugRectInt(wall, Color.red, duration, depthTest, height);
         }
     }
 
@@ -58,7 +64,8 @@ public class DungeonGenerator : MonoBehaviour
             int splitWidth = (roomToSplit.width / 2) + Random.Range(-5, 5);
             int splitX = roomToSplit.xMin + splitWidth;
 
-            if (splitWidth < minRoomSize) return;
+            if ((roomToSplit.width / 2) < minRoomSize) return;
+            if (roomToSplit.height < minRoomSize) return;
 
             firstHalf = new RectInt(roomToSplit.xMin, roomToSplit.yMin, splitWidth + 1, roomToSplit.height);
             secondHalf = new RectInt(splitX - 1, roomToSplit.yMin, roomToSplit.width - splitWidth + 1, roomToSplit.height);
@@ -68,7 +75,8 @@ public class DungeonGenerator : MonoBehaviour
             int splitHeight = (roomToSplit.height / 2) + Random.Range(-5, 5);
             int splitY = roomToSplit.yMin + splitHeight;
 
-            if (splitHeight < minRoomSize) return;
+            if ((roomToSplit.height / 2) < minRoomSize) return;
+            if (roomToSplit.width < minRoomSize) return;
 
             firstHalf = new RectInt(roomToSplit.xMin, roomToSplit.yMin, roomToSplit.width, splitHeight + 1);
             secondHalf = new RectInt(roomToSplit.xMin, splitY - 1, roomToSplit.width, roomToSplit.height - splitHeight + 1);
@@ -86,41 +94,41 @@ public class DungeonGenerator : MonoBehaviour
         rooms.Add(secondHalf);
     }
 
-    /*void CalculateWalls()
+
+
+    IEnumerator CalculateWalls()
     {
-
-        for (int i = 0; i < rooms.Count; i++)
-        {
-            for (int j = i + 1; j < rooms.Count; j++) // Avoid duplicate and self-checks
-            {
-                RectInt roomA = rooms[i];
-                RectInt roomB = rooms[j];
-
-                RectInt intersection = AlgorithmsUtils.Intersect(roomA, roomB);
-
-                // Ensure intersection is a valid wall (not a corner or too small)
-                if (intersection.width > 2 && intersection.height >= 2)
-                    continue;
-
-                walls.Add(intersection); // Store valid walls
-            }
-        }
-    }*/
-
-
-    void CalculateWalls()
-    {
+        yield return null;
+        /*bool canCheck = false;
         List<RectInt> checkedRooms = new List<RectInt>();
         foreach (RectInt room in rooms)
         {
-            foreach (RectInt room2check in rooms) {
-                walls.Add(AlgorithmsUtils.Intersect(room, room2check));
+            
+            foreach (RectInt room2check in rooms) 
+            {
+                
+                for (int i = 0; i < checkedRooms.Count; i++)
+                {
+                    if (checkedRooms[i] != room2check)
+                    {
+                        canCheck = true;
+                    }
+                }
+                RectInt intersection = AlgorithmsUtils.Intersect(room, room2check);
+                if (canCheck = true && (room != room2check && !(intersection.width == 2 && intersection.height == 2)))
+                {
+                    yield return new WaitForSeconds(1);
+                    walls.Add(intersection);
+                    canCheck = false;
+                }
+                  
             }
             checkedRooms.Add(room);
-        }
-        //make sure you're not checking corners or rooms that have already been checked, also make sure to not check the same room on itself.
-
+        }*/
+        //make sure you're not checking corners or rooms that have already been checked, also make sure to not check the same room on itself
     }
+
+    
 
     IEnumerator DungeonGeneration()
     {
@@ -148,7 +156,7 @@ public class DungeonGenerator : MonoBehaviour
     {
         Debug.Log("Starting generation of walls...");
         yield return new WaitForSeconds(1f);
-        foreach (RectInt room in rooms)
+        /*foreach (RectInt room in rooms)
         {
             // Calculate the center of the room for positioning
             Vector3 position = new Vector3(room.x + room.width / 2f, 0, room.y + room.height / 2f);
@@ -163,7 +171,7 @@ public class DungeonGenerator : MonoBehaviour
 
             yield return new WaitForSeconds(0.5f);
         }
-        Debug.Log("I'm done generating floors hehehaha");
+        Debug.Log("I'm done generating floors hehehaha"); */
     }
 
 }
