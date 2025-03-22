@@ -98,33 +98,22 @@ public class DungeonGenerator : MonoBehaviour
 
     IEnumerator CalculateWalls()
     {
-        yield return null;
-        /*bool canCheck = false;
-        List<RectInt> checkedRooms = new List<RectInt>();
-        foreach (RectInt room in rooms)
+        yield return new WaitForEndOfFrame();
+        for (int i = 0; i < rooms.Count; i++)
         {
-            
-            foreach (RectInt room2check in rooms) 
+            RectInt CheckedRoom = rooms[i];
+            for (int j = i + 1; j < rooms.Count; j++)
             {
-                
-                for (int i = 0; i < checkedRooms.Count; i++)
+                RectInt CheckingRoom = rooms[j];
+                RectInt intersection = AlgorithmsUtils.Intersect(CheckedRoom, CheckingRoom);
+                if ((!(intersection.width == 2 && intersection.height == 2) && (intersection.width > 0 && intersection.height > 0)) && (intersection.width > 4 || intersection.height > 4))
                 {
-                    if (checkedRooms[i] != room2check)
-                    {
-                        canCheck = true;
-                    }
-                }
-                RectInt intersection = AlgorithmsUtils.Intersect(room, room2check);
-                if (canCheck = true && (room != room2check && !(intersection.width == 2 && intersection.height == 2)))
-                {
-                    yield return new WaitForSeconds(1);
                     walls.Add(intersection);
-                    canCheck = false;
+                    
                 }
-                  
             }
-            checkedRooms.Add(room);
-        }*/
+            
+        }
         //make sure you're not checking corners or rooms that have already been checked, also make sure to not check the same room on itself
     }
 
