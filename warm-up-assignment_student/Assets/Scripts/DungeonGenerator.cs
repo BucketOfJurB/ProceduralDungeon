@@ -7,9 +7,10 @@ using UnityEngine.Analytics;
 
 public class DungeonGenerator : MonoBehaviour
 {
-    public List<RectInt> rooms = new List<RectInt>(); // Store all rooms here
+    public List<RectInt> rooms = new List<RectInt>();
     public List<RectInt> walls = new List<RectInt>();
-    public int maxSplits = 3; // Number of splits that should happen
+    List<RectInt> doors = new List<RectInt>();
+    public int maxSplits = 3; // number of splits that should happen
     public int overlapSize = 2; // Total overlap (1 on each side)
     public int minRoomSize = 20; // Min width or height for a room to be able to split
 
@@ -46,13 +47,17 @@ public class DungeonGenerator : MonoBehaviour
         {
             AlgorithmsUtils.DebugRectInt(wall, Color.red, duration, depthTest, height);
         }
+        foreach (var door in doors)
+        {
+            AlgorithmsUtils.DebugRectInt(door, Color.yellow, duration, depthTest, height);
+        }
     }
 
     void SplitOneRoom(RectInt boundary)
     {
         if (rooms.Count == 0) return; // Prevent errors
 
-        // Pick a random room from the list to split
+        // pick a random room from the list to split
         int roomIndex = Random.Range(0, rooms.Count);
         RectInt roomToSplit = rooms[roomIndex];
 
@@ -82,13 +87,13 @@ public class DungeonGenerator : MonoBehaviour
             secondHalf = new RectInt(roomToSplit.xMin, splitY - 1, roomToSplit.width, roomToSplit.height - splitHeight + 1);
         }
 
-        // Ensure overlap is EXACTLY 2 units (1 on each side)
+        // Ensure overlap is 1 on each side
         firstHalf.width = Mathf.Max(1, firstHalf.width);
         secondHalf.width = Mathf.Max(1, secondHalf.width);
         firstHalf.height = Mathf.Max(1, firstHalf.height);
         secondHalf.height = Mathf.Max(1, secondHalf.height);
 
-        // Replace the original room with the two new ones
+        // replace the original room with the two new ones
         rooms.RemoveAt(roomIndex);
         rooms.Add(firstHalf);
         rooms.Add(secondHalf);
@@ -117,12 +122,11 @@ public class DungeonGenerator : MonoBehaviour
         //make sure you're not checking corners or rooms that have already been checked, also make sure to not check the same room on itself
     }
 
-    
 
     IEnumerator DungeonGeneration()
     {
         Debug.Log("Starting generation...");
-        yield return new WaitForSeconds(1f);
+        yield return new WaitForEndOfFrame();
         foreach (RectInt room in rooms)
         {
             // Calculate the center of the room for positioning
@@ -131,36 +135,74 @@ public class DungeonGenerator : MonoBehaviour
             // Create a new floor
             GameObject floor = Instantiate(floorPrefab, position, Quaternion.identity, dungeonParent);
 
-            yield return new WaitForSeconds(0.5f);
+            yield return new WaitForSeconds(0.1f);
 
             // Scale the floor to fit the room size
             floor.transform.localScale = new Vector3(room.width, 1, room.height);
 
-            yield return new WaitForSeconds(0.5f);
+            yield return new WaitForSeconds(0.1f);
         }
         Debug.Log("I'm done generating floors hehehaha");
         StartCoroutine(GenerateWallsAndDoors());
     }
+
     IEnumerator GenerateWallsAndDoors()
     {
-        Debug.Log("Starting generation of walls...");
-        yield return new WaitForSeconds(1f);
-        /*foreach (RectInt room in rooms)
+    Debug.Log("Starting generation of walls and doors...");
+    yield return new WaitForSeconds(1f);
+
+    List<RectInt> newWalls = new List<RectInt>();
+
+    foreach (RectInt wall in walls)
+    {
+        // Make sure wall is at least 6x2 or 2x6 to place a door
+        if ((wall.width >= 6 && wall.height == 2) || (wall.height >= 6 && wall.width == 2))
         {
-            // Calculate the center of the room for positioning
-            Vector3 position = new Vector3(room.x + room.width / 2f, 0, room.y + room.height / 2f);
+            bool isVertical = wall.width == 2;
+            int minDoorPos = 2; // minimum distance from edge
+            int maxDoorPos = (isVertical ? wall.height : wall.width) - 4; // max position for door
 
-            // Create a new floor
-            GameObject floor = Instantiate(floorPrefab, position, Quaternion.identity, dungeonParent);
+            if (maxDoorPos < minDoorPos) 
+            {
+                newWalls.Add(wall); // If no space for a door, keep the original wall
+                continue;
+            }
 
-            yield return new WaitForSeconds(0.5f);
+            // make sure 2x6 and 6x2 are still getting doors (6-4 = 2)
+            int doorOffset = (maxDoorPos == 2) ? 2 : Random.Range(minDoorPos, maxDoorPos);
 
-            // Scale the floor to fit the room size
-            floor.transform.localScale = new Vector3(room.width, 1, room.height);
+            RectInt door;
+            RectInt wall1, wall2;
 
-            yield return new WaitForSeconds(0.5f);
+            if (isVertical) // Vertical wall
+            {
+                door = new RectInt(wall.x, wall.y + doorOffset, 2, 2);
+                wall1 = new RectInt(wall.x, wall.y, 2, doorOffset);
+                wall2 = new RectInt(wall.x, wall.y + doorOffset + 2, 2, wall.height - (doorOffset + 2));
+            }
+            else // Horizontal wall
+            {
+                door = new RectInt(wall.x + doorOffset, wall.y, 2, 2);
+                wall1 = new RectInt(wall.x, wall.y, doorOffset, 2);
+                wall2 = new RectInt(wall.x + doorOffset + 2, wall.y, wall.width - (doorOffset + 2), 2);
+            }
+
+            doors.Add(door);
+
+            // add new walls
+            if (wall1.width > 0 && wall1.height > 0) newWalls.Add(wall1);
+            if (wall2.width > 0 && wall2.height > 0) newWalls.Add(wall2);
         }
-        Debug.Log("I'm done generating floors hehehaha"); */
+        else
+        {
+            // keep the walls that are too small for doors
+            newWalls.Add(wall);
+        }
     }
+    walls = newWalls;
+
+    Debug.Log("Wall generation complete.");
+}
+
 
 }
