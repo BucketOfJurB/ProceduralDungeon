@@ -27,14 +27,8 @@ public class DungeonGenerator : MonoBehaviour
         rooms.Add(initialRoom);
 
         
-        for (int i = 0; i < maxSplits; i++)
-        {
-            SplitOneRoom(initialRoom); // Ensure boundary remains unchanged
-        }
-        StartCoroutine(CalculateWalls());
-
-
-        StartCoroutine("DungeonGeneration");
+        StartCoroutine(SplitOneRoom(initialRoom)); // Ensure boundary remains unchanged
+        
     }
 
     private void Update()
@@ -53,50 +47,55 @@ public class DungeonGenerator : MonoBehaviour
         }
     }
 
-    void SplitOneRoom(RectInt boundary)
+    IEnumerator SplitOneRoom(RectInt boundary)
     {
-        if (rooms.Count == 0) return; // Prevent errors
-
-        // pick a random room from the list to split
-        int roomIndex = Random.Range(0, rooms.Count);
-        RectInt roomToSplit = rooms[roomIndex];
-
-        bool splitVertically = Random.value > 0.5f;
-        RectInt firstHalf, secondHalf;
-
-        if (splitVertically)
+        for (int i = 0; i < maxSplits; i++)
         {
-            int splitWidth = (roomToSplit.width / 2) + Random.Range(-5, 5);
-            int splitX = roomToSplit.xMin + splitWidth;
+            yield return new WaitForSeconds(1);
+            if (rooms.Count == 0) continue; // Prevent errors
 
-            if ((roomToSplit.width / 2) < minRoomSize) return;
-            if (roomToSplit.height < minRoomSize) return;
+            // pick a random room from the list to split
+            int roomIndex = Random.Range(0, rooms.Count);
+            RectInt roomToSplit = rooms[roomIndex];
 
-            firstHalf = new RectInt(roomToSplit.xMin, roomToSplit.yMin, splitWidth + 1, roomToSplit.height);
-            secondHalf = new RectInt(splitX - 1, roomToSplit.yMin, roomToSplit.width - splitWidth + 1, roomToSplit.height);
+            bool splitVertically = Random.value > 0.5f;
+            RectInt firstHalf, secondHalf;
+
+            if (splitVertically)
+            {
+                int splitWidth = (roomToSplit.width / 2) + Random.Range(-5, 5);
+                int splitX = roomToSplit.xMin + splitWidth;
+
+                if ((roomToSplit.width / 2) < minRoomSize) continue;
+                if (roomToSplit.height < minRoomSize) continue;
+
+                firstHalf = new RectInt(roomToSplit.xMin, roomToSplit.yMin, splitWidth + 1, roomToSplit.height);
+                secondHalf = new RectInt(splitX - 1, roomToSplit.yMin, roomToSplit.width - splitWidth + 1, roomToSplit.height);
+            }
+            else
+            {
+                int splitHeight = (roomToSplit.height / 2) + Random.Range(-5, 5);
+                int splitY = roomToSplit.yMin + splitHeight;
+
+                if ((roomToSplit.height / 2) < minRoomSize) continue;
+                if (roomToSplit.width < minRoomSize) continue;
+
+                firstHalf = new RectInt(roomToSplit.xMin, roomToSplit.yMin, roomToSplit.width, splitHeight + 1);
+                secondHalf = new RectInt(roomToSplit.xMin, splitY - 1, roomToSplit.width, roomToSplit.height - splitHeight + 1);
+            }
+
+            // Ensure overlap is 1 on each side
+            firstHalf.width = Mathf.Max(1, firstHalf.width);
+            secondHalf.width = Mathf.Max(1, secondHalf.width);
+            firstHalf.height = Mathf.Max(1, firstHalf.height);
+            secondHalf.height = Mathf.Max(1, secondHalf.height);
+
+            // replace the original room with the two new ones
+            rooms.RemoveAt(roomIndex);
+            rooms.Add(firstHalf);
+            rooms.Add(secondHalf);
         }
-        else
-        {
-            int splitHeight = (roomToSplit.height / 2) + Random.Range(-5, 5);
-            int splitY = roomToSplit.yMin + splitHeight;
-
-            if ((roomToSplit.height / 2) < minRoomSize) return;
-            if (roomToSplit.width < minRoomSize) return;
-
-            firstHalf = new RectInt(roomToSplit.xMin, roomToSplit.yMin, roomToSplit.width, splitHeight + 1);
-            secondHalf = new RectInt(roomToSplit.xMin, splitY - 1, roomToSplit.width, roomToSplit.height - splitHeight + 1);
-        }
-
-        // Ensure overlap is 1 on each side
-        firstHalf.width = Mathf.Max(1, firstHalf.width);
-        secondHalf.width = Mathf.Max(1, secondHalf.width);
-        firstHalf.height = Mathf.Max(1, firstHalf.height);
-        secondHalf.height = Mathf.Max(1, secondHalf.height);
-
-        // replace the original room with the two new ones
-        rooms.RemoveAt(roomIndex);
-        rooms.Add(firstHalf);
-        rooms.Add(secondHalf);
+        StartCoroutine(CalculateWalls());
     }
 
 
@@ -119,6 +118,7 @@ public class DungeonGenerator : MonoBehaviour
             }
             
         }
+        StartCoroutine(DungeonGeneration());
         //make sure you're not checking corners or rooms that have already been checked, also make sure to not check the same room on itself
     }
 
@@ -143,10 +143,10 @@ public class DungeonGenerator : MonoBehaviour
             yield return new WaitForSeconds(0.1f);
         }
         Debug.Log("I'm done generating floors hehehaha");
-        StartCoroutine(GenerateWallsAndDoors());
+        StartCoroutine(CalculateDoors());
     }
 
-    IEnumerator GenerateWallsAndDoors()
+    IEnumerator CalculateDoors()
     {
     Debug.Log("Starting generation of walls and doors...");
     yield return new WaitForSeconds(1f);
@@ -155,6 +155,8 @@ public class DungeonGenerator : MonoBehaviour
 
     foreach (RectInt wall in walls)
     {
+        yield return new WaitForSeconds(1f);
+
         // Make sure wall is at least 6x2 or 2x6 to place a door
         if ((wall.width >= 6 && wall.height == 2) || (wall.height >= 6 && wall.width == 2))
         {
@@ -202,7 +204,7 @@ public class DungeonGenerator : MonoBehaviour
     walls = newWalls;
 
     Debug.Log("Wall generation complete.");
-}
+    }
 
 
 }
