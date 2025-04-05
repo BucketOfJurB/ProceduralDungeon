@@ -7,35 +7,41 @@ using static AlgorithmsUtils;
 
 public class DungeonGraph
 {
-    public Dictionary<RectInt, List<RectInt>> GenerateGraph(List<RectInt> rooms, List<RectInt> doors)
+    // Property to access the underlying graph
+    public Graph<RectInt> RoomGraph { get; private set; }
+
+    // Constructor to initialize the graph
+    public DungeonGraph()
     {
-        // Initialize a graph where each room maps to its neighbors
-        var graph = new Dictionary<RectInt, List<RectInt>>();
+        RoomGraph = new Graph<RectInt>();
+    }
+
+    // Method to build the graph from rooms and doors
+    public void GenerateGraph(List<RectInt> rooms, List<RectInt> doors)
+    {
+        // Step 1: Add all rooms as nodes
         foreach (var room in rooms)
         {
-            graph[room] = new List<RectInt>();
+            RoomGraph.AddNode(room);
         }
 
-        // Check each door
+        // Step 2: Add edges based on doors
         foreach (var door in doors)
         {
             // Find rooms that intersect with this door
             var connectedRooms = rooms.Where(r => AlgorithmsUtils.Intersects(r, door)).ToList();
-            
-            // Expect exactly two rooms per door
+
+            // Check if the door connects exactly two rooms
             if (connectedRooms.Count == 2)
             {
-                // Add edges between the two rooms
-                graph[connectedRooms[0]].Add(connectedRooms[1]);
-                graph[connectedRooms[1]].Add(connectedRooms[0]);
+                // Add an edge between the two rooms
+                RoomGraph.AddEdge(connectedRooms[0], connectedRooms[1]);
             }
             else
             {
-                // Warn if the door doesn’t connect exactly two rooms
+                // Log a warning if the door doesn’t connect exactly two rooms
                 Debug.LogWarning($"Door at {door.position} connects {connectedRooms.Count} rooms, expected 2.");
             }
         }
-
-        return graph;
     }
 }

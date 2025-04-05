@@ -10,6 +10,7 @@ public class DungeonGenerator : MonoBehaviour
     public List<RectInt> rooms = new List<RectInt>();
     public List<RectInt> walls = new List<RectInt>();
     public List<RectInt> doors = new List<RectInt>();
+    private DungeonGraph dungeonGraph;
     public int maxSplits = 3; // number of splits that should happen
     public int overlapSize = 2; // Total overlap (1 on each side)
     public int minRoomSize = 20; // Min width or height for a room to be able to split
@@ -51,7 +52,7 @@ public class DungeonGenerator : MonoBehaviour
     {
         for (int i = 0; i < maxSplits; i++)
         {
-            yield return new WaitForEndOfFrame();
+            yield return new WaitForSeconds(0.1f);
             if (rooms.Count == 0) continue; // Prevent errors
 
             // pick a random room from the list to split
@@ -207,10 +208,10 @@ public class DungeonGenerator : MonoBehaviour
 
     }
 
-    void CreateGraph(){
-        DungeonGraph dungeonGraph = new DungeonGraph();
-        Dictionary<RectInt, List<RectInt>> graph = dungeonGraph.GenerateGraph(rooms, doors);
+    void GenerateDungeonGraph(){
+        dungeonGraph = new DungeonGraph();
+        dungeonGraph.GenerateGraph(rooms, doors);
+        
     }
-
-
+    
 }
