@@ -15,6 +15,7 @@ public class DungeonGenerator : MonoBehaviour
     public int minRoomSize = 20; // Min width or height for a room to be able to split
 
     public GameObject floorPrefab;
+    public GameObject wallPrefab;
     public Transform dungeonParent;
 
     float duration = 0;
@@ -129,15 +130,15 @@ public class DungeonGenerator : MonoBehaviour
         yield return new WaitForEndOfFrame();
         foreach (RectInt room in rooms)
         {
-            // Calculate the center of the room for positioning
+            //calculate the center of the room for positioning
             Vector3 position = new Vector3(room.x + room.width / 2f, 0, room.y + room.height / 2f);
 
-            // Create a new floor
+
             GameObject floor = Instantiate(floorPrefab, position, Quaternion.identity, dungeonParent);
 
             yield return new WaitForSeconds(0.1f);
 
-            // Scale the floor to fit the room size
+            // scale the floor to fit the room size
             floor.transform.localScale = new Vector3(room.width, 1, room.height);
 
             yield return new WaitForSeconds(0.1f);
@@ -148,62 +149,87 @@ public class DungeonGenerator : MonoBehaviour
 
     IEnumerator CalculateDoors()
     {
-    Debug.Log("Starting generation of walls and doors...");
-    yield return new WaitForSeconds(1f);
+        Debug.Log("Starting generation of walls and doors...");
+        yield return new WaitForSeconds(1f);
 
-    List<RectInt> newWalls = new List<RectInt>();
+        List<RectInt> newWalls = new List<RectInt>();
 
-    foreach (RectInt wall in walls)
-    {
-        yield return new WaitForSeconds(0.1f);
-
-        // Make sure wall is at least 6x2 or 2x6 to place a door
-        if ((wall.width >= 6 && wall.height == 2) || (wall.height >= 6 && wall.width == 2))
+        foreach (RectInt wall in walls)
         {
-            bool isVertical = wall.width == 2;
-            int minDoorPos = 2; // minimum distance from edge
-            int maxDoorPos = (isVertical ? wall.height : wall.width) - 4; // max position for door
+            yield return new WaitForSeconds(0.1f);
 
-            if (maxDoorPos < minDoorPos) 
+            // Make sure wall is at least 6x2 or 2x6 to place a door
+            if ((wall.width >= 6 && wall.height == 2) || (wall.height >= 6 && wall.width == 2))
             {
-                newWalls.Add(wall); // If no space for a door, keep the original wall
-                continue;
+                bool isVertical = wall.width == 2;
+                int minDoorPos = 2; // minimum distance from edge
+                int maxDoorPos = (isVertical ? wall.height : wall.width) - 4; // max position for door
+
+                if (maxDoorPos < minDoorPos) 
+                {
+                    newWalls.Add(wall); // If no space for a door, keep the original wall
+                    continue;
+                }
+
+                // make sure 2x6 and 6x2 are still getting doors (6-4 = 2)
+                int doorOffset = (maxDoorPos == 2) ? 2 : Random.Range(minDoorPos, maxDoorPos);
+
+                RectInt door;
+                RectInt wall1, wall2;
+
+                if (isVertical)
+                {
+                    door = new RectInt(wall.x, wall.y + doorOffset, 2, 2);
+                    wall1 = new RectInt(wall.x, wall.y, 2, doorOffset);
+                    wall2 = new RectInt(wall.x, wall.y + doorOffset + 2, 2, wall.height - (doorOffset + 2));
+                }
+                else // horizontal wall
+                {
+                    door = new RectInt(wall.x + doorOffset, wall.y, 2, 2);
+                    wall1 = new RectInt(wall.x, wall.y, doorOffset, 2);
+                    wall2 = new RectInt(wall.x + doorOffset + 2, wall.y, wall.width - (doorOffset + 2), 2);
+                }
+
+                doors.Add(door);
+
+                // add new walls
+                if (wall1.width > 0 && wall1.height > 0) newWalls.Add(wall1);
+                if (wall2.width > 0 && wall2.height > 0) newWalls.Add(wall2);
             }
-
-            // make sure 2x6 and 6x2 are still getting doors (6-4 = 2)
-            int doorOffset = (maxDoorPos == 2) ? 2 : Random.Range(minDoorPos, maxDoorPos);
-
-            RectInt door;
-            RectInt wall1, wall2;
-
-            if (isVertical) // Vertical wall
+            else
             {
-                door = new RectInt(wall.x, wall.y + doorOffset, 2, 2);
-                wall1 = new RectInt(wall.x, wall.y, 2, doorOffset);
-                wall2 = new RectInt(wall.x, wall.y + doorOffset + 2, 2, wall.height - (doorOffset + 2));
+                // keep the walls that are too small for doors
+                newWalls.Add(wall);
             }
-            else // Horizontal wall
-            {
-                door = new RectInt(wall.x + doorOffset, wall.y, 2, 2);
-                wall1 = new RectInt(wall.x, wall.y, doorOffset, 2);
-                wall2 = new RectInt(wall.x + doorOffset + 2, wall.y, wall.width - (doorOffset + 2), 2);
-            }
-
-            doors.Add(door);
-
-            // add new walls
-            if (wall1.width > 0 && wall1.height > 0) newWalls.Add(wall1);
-            if (wall2.width > 0 && wall2.height > 0) newWalls.Add(wall2);
         }
-        else
-        {
-            // keep the walls that are too small for doors
-            newWalls.Add(wall);
-        }
+        walls = newWalls;
+
+        Debug.Log("Wall generation complete.");
+
+        StartCoroutine(SpawnWalls());
     }
-    walls = newWalls;
 
-    Debug.Log("Wall generation complete.");
+    IEnumerator SpawnWalls()
+    {
+        Debug.Log("Spawning walls");
+        yield return new WaitForEndOfFrame();
+        foreach (RectInt wall in walls)
+        {
+            //calculate the center of the room for positioning
+            Vector3 position = new Vector3(wall.x + wall.width / 2f, 1, wall.y + wall.height / 2f);
+
+
+            GameObject wallHalf = Instantiate(wallPrefab, position, Quaternion.identity, dungeonParent);
+
+            yield return new WaitForSeconds(0.1f);
+
+            // scale the floor to fit the room size
+            wallHalf.transform.localScale = new Vector3(wall.width, 1, wall.height);
+
+            yield return new WaitForSeconds(0.1f);
+        }
+        Debug.Log("I'm done spawning walls hehehaha");
+
 
     }
 

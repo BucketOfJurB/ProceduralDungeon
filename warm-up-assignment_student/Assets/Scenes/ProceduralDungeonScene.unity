@@ -488,10 +488,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   rooms: []
   walls: []
+  doors: []
   maxSplits: 35
   overlapSize: 2
   minRoomSize: 10
   floorPrefab: {fileID: 2946686572107542414, guid: 4e15e9e4fd5a3c642a94d761b791b81a, type: 3}
+  wallPrefab: {fileID: 1416537388541938159, guid: 9e356ebcc60aa9541bd41eafe5bb2ef5, type: 3}
   dungeonParent: {fileID: 186676701}
 --- !u!4 &1622269099
 Transform:
