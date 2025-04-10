@@ -125,39 +125,10 @@ public class DungeonGenerator : MonoBehaviour
             }
             
         }
-        StartCoroutine(DungeonGeneration());
+        StartCoroutine(CalculateDoors());
         //make sure you're not checking corners or rooms that have already been checked, also make sure to not check the same room on itself
     }
-
-
-    IEnumerator DungeonGeneration()
-    {
-        Debug.Log("Starting generation...");
-        yield return new WaitForEndOfFrame();
-        foreach (RectInt room in rooms)
-        {
-            //calculate the center of the room for positioning
-            Vector3 position = new Vector3(room.x + room.width / 2f, -0.5f, room.y + room.height / 2f);
-
-
-            GameObject floor = Instantiate(floorPrefab, position, Quaternion.identity, dungeonParent);
-
-            if (EnableTimers)
-            {
-                yield return new WaitForSeconds(0.1f);
-            }
-
-            // scale the floor to fit the room size
-            floor.transform.localScale = new Vector3(room.width, 1, room.height);
-
-            if (EnableTimers)
-            {
-                yield return new WaitForSeconds(0.1f);
-            }
-        }
-        Debug.Log("I'm done generating floors hehehaha");
-        StartCoroutine(CalculateDoors());
-    }
+    
 
     IEnumerator CalculateDoors()
     {
@@ -221,10 +192,39 @@ public class DungeonGenerator : MonoBehaviour
 
         Debug.Log("Wall generation complete.");
 
+        StartCoroutine(SpawnFloor());
+    }
+
+    IEnumerator SpawnFloor()
+    {
+        Debug.Log("Starting generation...");
+        yield return new WaitForEndOfFrame();
+        foreach (RectInt room in rooms)
+        {
+            //calculate the center of the room for positioning
+            Vector3 position = new Vector3(room.x + room.width / 2f, -0.5f, room.y + room.height / 2f);
+
+
+            GameObject floor = Instantiate(floorPrefab, position, Quaternion.identity, dungeonParent);
+
+            if (EnableTimers)
+            {
+                yield return new WaitForSeconds(0.1f);
+            }
+
+            // scale the floor to fit the room size
+            floor.transform.localScale = new Vector3(room.width, 1, room.height);
+
+            if (EnableTimers)
+            {
+                yield return new WaitForSeconds(0.1f);
+            }
+        }
+        Debug.Log("I'm done generating floors hehehaha");
         StartCoroutine(SpawnWalls());
     }
 
-    
+
     IEnumerator SpawnWalls()
     {
         Debug.Log("Spawning walls");

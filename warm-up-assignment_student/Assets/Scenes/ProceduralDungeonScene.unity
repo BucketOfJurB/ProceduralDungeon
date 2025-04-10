@@ -593,7 +593,7 @@ MonoBehaviour:
   wallPrefab: {fileID: 1416537388541938159, guid: 9e356ebcc60aa9541bd41eafe5bb2ef5, type: 3}
   dungeonParent: {fileID: 186676701}
   navMeshSurface: {fileID: 1622269100}
-  DisableTimers: 1
+  EnableTimers: 1
 --- !u!4 &1622269099
 Transform:
   m_ObjectHideFlags: 0
