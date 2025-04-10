@@ -9,17 +9,15 @@ public class DungeonGraph
 {
     public Dictionary<RectInt, List<RectInt>> GenerateGraph(List<RectInt> rooms, List<RectInt> doors)
     {
-        // Initialize a graph where each room maps to its neighbors
         var graph = new Dictionary<RectInt, List<RectInt>>();
         foreach (var room in rooms)
         {
             graph[room] = new List<RectInt>();
         }
 
-        // Check each door
         foreach (var door in doors)
         {
-            // Find rooms that intersect with this door
+            // find rooms that intersect with a door
             var connectedRooms = rooms.Where(r => AlgorithmsUtils.Intersects(r, door)).ToList();
             
             // Expect exactly two rooms per door

@@ -4,6 +4,8 @@ using Unity.VisualScripting;
 using System.Collections;
 using NaughtyAttributes;
 using UnityEngine.Analytics;
+using Unity.AI.Navigation;
+using UnityEngine.UIElements;
 
 public class DungeonGenerator : MonoBehaviour
 {
@@ -17,10 +19,14 @@ public class DungeonGenerator : MonoBehaviour
     public GameObject floorPrefab;
     public GameObject wallPrefab;
     public Transform dungeonParent;
+    public NavMeshSurface navMeshSurface;
 
     float duration = 0;
     bool depthTest = false;
     float height = 0.01f;
+
+    [SerializeField]
+    bool EnableTimers = false;
 
     private void Start()
     {
@@ -131,17 +137,23 @@ public class DungeonGenerator : MonoBehaviour
         foreach (RectInt room in rooms)
         {
             //calculate the center of the room for positioning
-            Vector3 position = new Vector3(room.x + room.width / 2f, 0, room.y + room.height / 2f);
+            Vector3 position = new Vector3(room.x + room.width / 2f, -0.5f, room.y + room.height / 2f);
 
 
             GameObject floor = Instantiate(floorPrefab, position, Quaternion.identity, dungeonParent);
 
-            yield return new WaitForSeconds(0.1f);
+            if (EnableTimers)
+            {
+                yield return new WaitForSeconds(0.1f);
+            }
 
             // scale the floor to fit the room size
             floor.transform.localScale = new Vector3(room.width, 1, room.height);
 
-            yield return new WaitForSeconds(0.1f);
+            if (EnableTimers)
+            {
+                yield return new WaitForSeconds(0.1f);
+            }
         }
         Debug.Log("I'm done generating floors hehehaha");
         StartCoroutine(CalculateDoors());
@@ -156,7 +168,10 @@ public class DungeonGenerator : MonoBehaviour
 
         foreach (RectInt wall in walls)
         {
-            yield return new WaitForSeconds(0.1f);
+            if (EnableTimers)
+            {
+                yield return new WaitForSeconds(0.1f);
+            }
 
             // Make sure wall is at least 6x2 or 2x6 to place a door
             if ((wall.width >= 6 && wall.height == 2) || (wall.height >= 6 && wall.width == 2))
@@ -209,6 +224,7 @@ public class DungeonGenerator : MonoBehaviour
         StartCoroutine(SpawnWalls());
     }
 
+    
     IEnumerator SpawnWalls()
     {
         Debug.Log("Spawning walls");
@@ -216,17 +232,23 @@ public class DungeonGenerator : MonoBehaviour
         foreach (RectInt wall in walls)
         {
             //calculate the center of the room for positioning
-            Vector3 position = new Vector3(wall.x + wall.width / 2f, 1, wall.y + wall.height / 2f);
+            Vector3 position = new Vector3(wall.x + wall.width / 2f, 0.5f, wall.y + wall.height / 2f);
 
 
             GameObject wallHalf = Instantiate(wallPrefab, position, Quaternion.identity, dungeonParent);
 
-            yield return new WaitForSeconds(0.1f);
+            if (EnableTimers)
+            {
+                yield return new WaitForSeconds(0.1f);
+            }
 
             // scale the floor to fit the room size
             wallHalf.transform.localScale = new Vector3(wall.width, 1, wall.height);
 
-            yield return new WaitForSeconds(0.1f);
+            if (EnableTimers)
+            {
+                yield return new WaitForSeconds(0.1f);
+            }
         }
         Debug.Log("I'm done spawning walls hehehaha");
 
@@ -238,5 +260,10 @@ public class DungeonGenerator : MonoBehaviour
         Dictionary<RectInt, List<RectInt>> graph = dungeonGraph.GenerateGraph(rooms, doors);
     }
 
+    [Button]
+    void BakeNavMesh()
+    {
+        navMeshSurface.BuildNavMesh();
+    }
 
 }
