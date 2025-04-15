@@ -1,15 +1,19 @@
+using System.Collections.Generic;
+using UnityEditor;
 using UnityEngine;
 
 public class DungeonGraphHelper : MonoBehaviour
 {
-
-    void Start()
+    private DungeonGraph dungeonGraph;
+    public void GenerateGraph(List<RectInt> rooms, List<RectInt> doors)
     {
-        
+        dungeonGraph = new DungeonGraph();
+        dungeonGraph.BuildRoomGraph(rooms, doors);
     }
 
     void Update()
     {
-        
+        // Redraw the graph every frame
+        dungeonGraph.DrawGraph(0f);
     }
 }

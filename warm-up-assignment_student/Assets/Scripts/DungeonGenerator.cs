@@ -21,6 +21,9 @@ public class DungeonGenerator : MonoBehaviour
     public Transform dungeonParent;
     public NavMeshSurface navMeshSurface;
 
+    [SerializeField]
+    private DungeonGraphHelper dungeonGraphHelper;
+
     float duration = 0;
     bool depthTest = false;
     float height = 0.01f;
@@ -252,12 +255,12 @@ public class DungeonGenerator : MonoBehaviour
         }
         Debug.Log("I'm done spawning walls hehehaha");
 
-
     }
 
-    void CreateGraph(){
-        DungeonGraph dungeonGraph = new DungeonGraph();
-        Dictionary<RectInt, List<RectInt>> graph = dungeonGraph.GenerateGraph(rooms, doors);
+    [Button]
+    void StartGraph()
+    {
+        dungeonGraphHelper.GenerateGraph(rooms, doors);
     }
 
     [Button]
