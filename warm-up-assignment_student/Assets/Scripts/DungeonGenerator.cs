@@ -6,6 +6,7 @@ using NaughtyAttributes;
 using UnityEngine.Analytics;
 using Unity.AI.Navigation;
 using UnityEngine.UIElements;
+using System.Linq;
 
 public class DungeonGenerator : MonoBehaviour
 {
@@ -129,7 +130,6 @@ public class DungeonGenerator : MonoBehaviour
             
         }
         StartCoroutine(CalculateDoors());
-        //make sure you're not checking corners or rooms that have already been checked, also make sure to not check the same room on itself
     }
     
 
@@ -202,27 +202,30 @@ public class DungeonGenerator : MonoBehaviour
     {
         Debug.Log("Starting generation...");
         yield return new WaitForEndOfFrame();
+
+        HashSet<Vector3> floorPositions = new HashSet<Vector3>(); // HashSet for floor positions
+
         foreach (RectInt room in rooms)
         {
-            //calculate the center of the room for positioning
-            Vector3 position = new Vector3(room.x + room.width / 2f, -0.5f, room.y + room.height / 2f);
-
-
-            GameObject floor = Instantiate(floorPrefab, position, Quaternion.identity, dungeonParent);
-
-            if (EnableTimers)
+            for (int x = room.xMin; x < room.xMax; x++)
             {
-                yield return new WaitForSeconds(0.1f);
-            }
-
-            // scale the floor to fit the room size
-            floor.transform.localScale = new Vector3(room.width, 1, room.height);
-
-            if (EnableTimers)
-            {
-                yield return new WaitForSeconds(0.1f);
+                for (int y = room.yMin; y < room.yMax; y++)
+                {
+                    Vector3 position = new Vector3(x + 0.5f, -0.5f, y + 0.5f); // Center each cube
+                    floorPositions.Add(position);
+                }
             }
         }
+
+        foreach (Vector3 position in floorPositions)
+        {
+            Instantiate(floorPrefab, position, Quaternion.identity, dungeonParent);
+            if (EnableTimers)
+            {
+                yield return new WaitForSeconds(0.0001f); // Optional delay for debugging
+            }
+        }
+
         Debug.Log("I'm done generating floors hehehaha");
         StartCoroutine(SpawnWalls());
     }
@@ -232,27 +235,30 @@ public class DungeonGenerator : MonoBehaviour
     {
         Debug.Log("Spawning walls");
         yield return new WaitForEndOfFrame();
+
+        HashSet<Vector3> wallPositions = new HashSet<Vector3>(); // HashSet for wall positions
+
         foreach (RectInt wall in walls)
         {
-            //calculate the center of the room for positioning
-            Vector3 position = new Vector3(wall.x + wall.width / 2f, 0.5f, wall.y + wall.height / 2f);
-
-
-            GameObject wallHalf = Instantiate(wallPrefab, position, Quaternion.identity, dungeonParent);
-
-            if (EnableTimers)
+            for (int x = wall.xMin; x < wall.xMax; x++)
             {
-                yield return new WaitForSeconds(0.1f);
-            }
-
-            // scale the floor to fit the room size
-            wallHalf.transform.localScale = new Vector3(wall.width, 1, wall.height);
-
-            if (EnableTimers)
-            {
-                yield return new WaitForSeconds(0.1f);
+                for (int y = wall.yMin; y < wall.yMax; y++)
+                {
+                    Vector3 position = new Vector3(x + 0.5f, 0.5f, y + 0.5f); // Center each cube
+                    wallPositions.Add(position);
+                }
             }
         }
+
+        foreach (Vector3 position in wallPositions)
+        {
+            Instantiate(wallPrefab, position, Quaternion.identity, dungeonParent);
+            if (EnableTimers)
+            {
+                yield return new WaitForSeconds(0.01f); // Optional delay for debugging
+            }
+        }
+    
         Debug.Log("I'm done spawning walls hehehaha");
 
     }

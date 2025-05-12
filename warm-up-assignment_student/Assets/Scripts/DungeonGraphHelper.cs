@@ -14,6 +14,9 @@ public class DungeonGraphHelper : MonoBehaviour
     void Update()
     {
         // Redraw the graph every frame
-        dungeonGraph.DrawGraph(0f);
+        if (dungeonGraph != null)
+        {
+            dungeonGraph.DrawGraph(0f);
+        }
     }
 }

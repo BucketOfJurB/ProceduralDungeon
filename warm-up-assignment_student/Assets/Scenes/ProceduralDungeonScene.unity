@@ -638,7 +638,7 @@ MonoBehaviour:
   dungeonParent: {fileID: 186676701}
   navMeshSurface: {fileID: 1622269100}
   dungeonGraphHelper: {fileID: 524892864}
-  EnableTimers: 0
+  EnableTimers: 1
 --- !u!4 &1622269099
 Transform:
   m_ObjectHideFlags: 0
