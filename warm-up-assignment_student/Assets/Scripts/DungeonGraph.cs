@@ -1,47 +1,99 @@
-using UnityEngine;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using static AlgorithmsUtils;
-
+using UnityEngine;
 
 public class DungeonGraph
 {
-    // Property to access the underlying graph
     public Graph<RectInt> RoomGraph { get; private set; }
+    private Dictionary<(RectInt, RectInt), RectInt> edgeToDoor;
+    private HashSet<(RectInt, RectInt)> drawnEdges;
 
-    // Constructor to initialize the graph
     public DungeonGraph()
     {
         RoomGraph = new Graph<RectInt>();
+        edgeToDoor = new Dictionary<(RectInt, RectInt), RectInt>();
+        drawnEdges = new HashSet<(RectInt, RectInt)>();
     }
 
-    // Method to build the graph from rooms and doors
-    public void GenerateGraph(List<RectInt> rooms, List<RectInt> doors)
+    public void BuildRoomGraph(List<RectInt> rooms, List<RectInt> doors)
     {
-        // Step 1: Add all rooms as nodes
+        if (rooms == null || doors == null)
+        {
+            Debug.LogError("Rooms or doors list is null.");
+            return;
+        }
+
+        // Add all rooms as nodes
         foreach (var room in rooms)
         {
             RoomGraph.AddNode(room);
         }
 
-        // Step 2: Add edges based on doors
+        // Add edges based on doors
         foreach (var door in doors)
         {
-            // Find rooms that intersect with this door
             var connectedRooms = rooms.Where(r => AlgorithmsUtils.Intersects(r, door)).ToList();
-
-            // Check if the door connects exactly two rooms
             if (connectedRooms.Count == 2)
             {
-                // Add an edge between the two rooms
-                RoomGraph.AddEdge(connectedRooms[0], connectedRooms[1]);
+                RectInt room1 = connectedRooms[0];
+                RectInt room2 = connectedRooms[1];
+                RoomGraph.AddEdge(room1, room2);
+                edgeToDoor[(room1, room2)] = door;
+                edgeToDoor[(room2, room1)] = door;
             }
             else
             {
-                // Log a warning if the door doesn’t connect exactly two rooms
                 Debug.LogWarning($"Door at {door.position} connects {connectedRooms.Count} rooms, expected 2.");
             }
         }
+    }
+
+    public void DrawGraph(float duration = 0f)
+    {
+        if (RoomGraph == null)
+        {
+            Debug.LogError("RoomGraph is null. Call BuildRoomGraph first.");
+            return;
+        }
+
+        foreach (var room in RoomGraph.GetNodes())
+        {
+            Vector3 roomCenter = GetRoomCenter(room);
+            var neighbors = RoomGraph.GetNeighbors(room);
+            foreach (var neighbor in neighbors)
+            {
+                var edgeKey = room.GetHashCode() < neighbor.GetHashCode() ? (room, neighbor) : (neighbor, room);
+                if (!drawnEdges.Contains(edgeKey))
+                {
+                    drawnEdges.Add(edgeKey);
+                    if (edgeToDoor.TryGetValue(edgeKey, out RectInt door))
+                    {
+                        Vector3 doorCenter = GetDoorCenter(door);
+                        Vector3 neighborCenter = GetRoomCenter(neighbor);
+                        Debug.DrawLine(roomCenter, doorCenter, Color.blue, duration);
+                        Debug.DrawLine(doorCenter, neighborCenter, Color.blue, duration);
+                    }
+                    else
+                    {
+                        Vector3 neighborCenter = GetRoomCenter(neighbor);
+                        Debug.DrawLine(roomCenter, neighborCenter, Color.red, duration);
+                        Debug.LogWarning($"No door found for edge between rooms at {room.position} and {neighbor.position}.");
+                    }
+                }
+            }
+        }
+        drawnEdges.Clear();
+    }
+
+    private Vector3 GetRoomCenter(RectInt room)
+    {
+        Vector2 center = new Vector2(room.x + room.width / 2f, room.y + room.height / 2f);
+        return new Vector3(center.x, 1, center.y);
+    }
+
+    private Vector3 GetDoorCenter(RectInt door)
+    {
+        Vector2 center = new Vector2(door.x + door.width / 2f, door.y + door.height / 2f);
+        return new Vector3(center.x, 1, center.y);
     }
 }
