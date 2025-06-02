@@ -37,8 +37,24 @@ public class DungeonGenerator : MonoBehaviour
         RectInt initialRoom = new RectInt(0, 0, 100, 100);
         rooms.Add(initialRoom);
 
+        // Create border wall
+        RectInt borderRect = new RectInt(
+            initialRoom.xMin - 1,
+            initialRoom.yMin - 1,
+            initialRoom.width + 2,
+            initialRoom.height + 2
+        );
         
-        StartCoroutine(SplitOneRoom(initialRoom)); // Ensure boundary remains unchanged
+        //top
+        walls.Add(new RectInt(borderRect.xMin, borderRect.yMax - 1, borderRect.width, 1));
+        //bottom
+        walls.Add(new RectInt(borderRect.xMin, borderRect.yMin, borderRect.width, 1));
+        //left
+        walls.Add(new RectInt(borderRect.xMin, borderRect.yMin + 1, 1, borderRect.height - 2));
+        //right
+        walls.Add(new RectInt(borderRect.xMax - 1, borderRect.yMin + 1, 1, borderRect.height - 2));
+        
+        StartCoroutine(SplitOneRoom(initialRoom)); // making sure boundary remains unchanged
         
     }
 
