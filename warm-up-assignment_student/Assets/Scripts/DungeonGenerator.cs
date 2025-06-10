@@ -15,7 +15,7 @@ public class DungeonGenerator : MonoBehaviour
     public List<RectInt> doors = new List<RectInt>();
     public int maxSplits = 3; // number of splits that should happen
     public int overlapSize = 2; // Total overlap (1 on each side)
-    public int minRoomSize = 20; // Min width or height for a room to be able to split
+    public int minRoomSize = 20; // Min width or height for a room to be able to split (make it the final minroomsize)
 
     public GameObject floorPrefab;
     public GameObject wallPrefab;
@@ -279,10 +279,13 @@ public class DungeonGenerator : MonoBehaviour
 
     }
 
+   
+
     [Button]
     void StartGraph()
     {
         dungeonGraphHelper.GenerateGraph(rooms, doors);
+        Debug.Log(dungeonGraphHelper.IsConnected());
     }
 
     [Button]

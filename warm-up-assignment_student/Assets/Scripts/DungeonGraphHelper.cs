@@ -11,6 +11,7 @@ public class DungeonGraphHelper : MonoBehaviour
         dungeonGraph.BuildRoomGraph(rooms, doors);
     }
 
+
     void Update()
     {
         // Redraw the graph every frame
@@ -19,4 +20,11 @@ public class DungeonGraphHelper : MonoBehaviour
             dungeonGraph.DrawGraph(0f);
         }
     }
+
+    public bool IsConnected()
+    {
+        return false;
+        //check if 1 room can connect to all other rooms, if room+connected rooms = total rooms(.count) then true else false.
+    }
+
 }
