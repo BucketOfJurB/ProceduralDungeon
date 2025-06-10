@@ -85,9 +85,33 @@ public class Graph<T>
     }
     
     // Breadth-First Search (BFS)
-    public void BFS(T startNode)
+    public List<T> BFS(T startNode)
     {
-        /* */
+        var visited = new HashSet<T>();
+        var queue = new Queue<T>();
+        var result = new List<T>();
+
+        if (!adjacencyList.ContainsKey(startNode))
+            return result;
+
+        queue.Enqueue(startNode);
+        visited.Add(startNode);
+
+        while (queue.Count > 0)
+        {
+            var current = queue.Dequeue();
+            result.Add(current);
+
+            foreach (var neighbor in GetNeighbors(current))
+            {
+                if (!visited.Contains(neighbor))
+                {
+                    visited.Add(neighbor);
+                    queue.Enqueue(neighbor);
+                }
+            }
+        }
+        return result;
     }
 
     // Depth-First Search (DFS)

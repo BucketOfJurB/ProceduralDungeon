@@ -23,8 +23,16 @@ public class DungeonGraphHelper : MonoBehaviour
 
     public bool IsConnected()
     {
-        return false;
-        //check if 1 room can connect to all other rooms, if room+connected rooms = total rooms(.count) then true else false.
+        if (dungeonGraph == null || dungeonGraph.RoomGraph == null)
+            return false;
+
+        var allRooms = dungeonGraph.RoomGraph.GetNodes();
+        if (allRooms.Count == 0)
+            return true; // connected.... technically
+
+        // start BFS from the first room
+        var visited = dungeonGraph.RoomGraph.BFS(allRooms[0]);
+        return visited.Count == allRooms.Count;
     }
 
 }
